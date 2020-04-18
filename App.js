@@ -4,18 +4,19 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  Button,
+  FlatList,
   TouchableOpacity,
   View,
   Text
 } from 'react-native';
 
 import firestore from '@react-native-firebase/firestore';
+import uuid from 'react-native-uuid';
 
 const App = () => {
 
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState(null)
+  const [messages, setMessages] = useState([])
 
   useEffect(() => {
     const subscriber = firestore()
@@ -24,36 +25,66 @@ const App = () => {
     return () => subscriber();
   }, [])
 
-  function onResult(collectionSnapshot) {
-    // setMessages(collectionSnapshot)
-    console.log(collectionSnapshot.forEach(element => {
-      console.log(element);
-      
+  function onResult(querySnapshot) {
+
+    querySnapshot.docChanges().map(item => {
+      console.log(messages);
+
+      switch (item.type) {
+        case 'added':
+          addMessage(item)
+          break;
+        case 'removed':
+          removeMessage(item)
+          break;
+      }
+    })
+  }
+
+  function removeMessage(documentChange) {
+    setMessages(oldMessages => oldMessages.filter(item => {
+      return item.doc.data().id !== documentChange.doc.data().id
     }))
   }
+
+  function addMessage(documentChange) {
+    setMessages(oldMessages => [...oldMessages, documentChange])
+  }
+
 
   function onError(error) {
     console.error(error);
   }
 
   function createMessage() {
+    if (message.trim() === '') {
+      return
+    }
     firestore()
       .collection('chats')
       .doc()
       .set({
+        id: uuid.v4(),
         author: 'caio',
-        message
+        message,
+        created: new Date()
       })
+    setMessage('')
   }
 
   return (
     <>
       {/* <StatusBar barStyle="dark-content" /> */}
       <SafeAreaView style={{ flexGrow: 1 }}>
-        <ScrollView contentContainerStyle={styles.container}
-          contentInsetAdjustmentBehavior="automatic">
-
-        </ScrollView>
+        <View style={styles.container}>
+          <FlatList
+            data={messages}
+            renderItem={({ item }) => {
+              return <Text>{item.doc.data().message}</Text>
+            }}
+            keyExtractor={item => item.doc.data().id}
+          />
+        </View>
         <View style={styles.mensagemContainer}>
           <TextInput
             style={{ height: 40, width: '80%', borderColor: 'gray', borderWidth: 1 }}
