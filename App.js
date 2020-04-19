@@ -1,14 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
-  ScrollView,
   TextInput,
   FlatList,
   TouchableOpacity,
   View,
-  Text
+  Text,
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
+
+import Message from "./src/components/Message";
 
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
@@ -17,6 +20,7 @@ const App = () => {
 
   const [message, setMessage] = useState('')
   const [messages, setMessages] = useState([])
+  const flatList = useRef(null);
 
   useEffect(() => {
     const subscriber = firestore()
@@ -26,10 +30,7 @@ const App = () => {
   }, [])
 
   function onResult(querySnapshot) {
-
     querySnapshot.docChanges().map(item => {
-      console.log(messages);
-
       switch (item.type) {
         case 'added':
           addMessage(item)
@@ -50,7 +51,6 @@ const App = () => {
   function addMessage(documentChange) {
     setMessages(oldMessages => [...oldMessages, documentChange])
   }
-
 
   function onError(error) {
     console.error(error);
@@ -73,18 +73,21 @@ const App = () => {
   }
 
   return (
-    <>
-      {/* <StatusBar barStyle="dark-content" /> */}
-      <SafeAreaView style={{ flexGrow: 1 }}>
-        <View style={styles.container}>
-          <FlatList
-            data={messages}
-            renderItem={({ item }) => {
-              return <Text>{item.doc.data().message}</Text>
-            }}
-            keyExtractor={item => item.doc.data().id}
-          />
-        </View>
+    <SafeAreaView style={{ flexGrow: 1 }}>
+      <KeyboardAvoidingView style={{ flex: 1 }}
+      >
+        <FlatList
+          ref={flatList}
+          onContentSizeChange={() => flatList.current.scrollToEnd()}
+          onLayout={(event) => flatList.current.scrollToEnd()}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
+          data={messages}
+          initialScrollIndex={0}
+          renderItem={({ item }) => {
+            return <Message data={item.doc.data()} />
+          }}
+          keyExtractor={item => item.doc.data().id}
+        />
         <View style={styles.mensagemContainer}>
           <TextInput
             style={{ height: 40, width: '80%', borderColor: 'gray', borderWidth: 1 }}
@@ -99,15 +102,12 @@ const App = () => {
             <Text style={{ color: 'white' }}>Send</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1
-  },
   mensagemContainer: {
     flexDirection: 'row'
   },
