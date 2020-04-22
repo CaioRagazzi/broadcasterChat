@@ -7,7 +7,7 @@ const Stack = createStackNavigator();
 
 function Navigator() {
     return (
-        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerStyle: { backgroundColor: 'red' }, headerTintColor: '#fff' }}>
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Conversation" component={Conversation} />
             <Stack.Screen name="Login" component={Login} />
         </Stack.Navigator>
