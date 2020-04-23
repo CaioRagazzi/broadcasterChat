@@ -2,7 +2,17 @@ import auth from '@react-native-firebase/auth';
 import { GoogleSignin, GoogleSigninButton } from '@react-native-community/google-signin';
 
 import React, { useState, useEffect, useRef } from 'react'
-import { TouchableOpacity, TextInput, Text, StyleSheet, SafeAreaView, View, Dimensions, ActivityIndicator } from 'react-native'
+import {
+    TouchableOpacity,
+    TextInput,
+    Text,
+    StyleSheet,
+    SafeAreaView,
+    View,
+    Dimensions,
+    ActivityIndicator,
+    Keyboard
+} from 'react-native'
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -69,6 +79,7 @@ const Login = ({ navigation }) => {
             setLoading(false)
             return
         }
+        Keyboard.dismiss()
         auth()
             .signInWithEmailAndPassword(email, password).catch(error => {
                 if (error.code === 'auth/email-already-in-use') {
@@ -117,7 +128,6 @@ const Login = ({ navigation }) => {
                 if (error.code === 'auth/user-not-found') {
                     setEmailErrorMessage('There is no user record corresponding to this identifier. The user may have been deleted.')
                 }
-                console.log(error);
                 setLoading(false)
             });
     }

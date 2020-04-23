@@ -54,11 +54,10 @@ const Contacts = ({ navigation }) => {
     return (
         <SafeAreaView style={{ flexGrow: 1 }}>
             <KeyboardAvoidingView style={{ flex: 1 }} >
-                <Text>asdasdasd</Text>
                 {
                     chats.map(item => {
                         return (
-                            <Button key={item.id} title={item.data}></Button>
+                            <Button key={item.id} title={item.data} onPress={() => { navigation.navigate('Conversation', { conversation: item.data }) }}></Button>
                         )
                     })
                 }

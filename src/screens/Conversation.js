@@ -16,14 +16,18 @@ import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
 import auth from '@react-native-firebase/auth';
 
-const Conversation = () => {
+const Conversation = ({ route, navigation }) => {
 
     const isMounted = useRef(false);
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
     const [initializing, setInitializing] = useState(true);
     const [user, setUser] = useState();
+    const [profile, setProfile] = useState({})
+
     const flatList = useRef(null);
+
+    const { conversation } = route.params;
 
     useEffect(() => {
         const subscriberAuth = auth().onAuthStateChanged(onAuthStateChanged);
@@ -35,8 +39,10 @@ const Conversation = () => {
     useEffect(() => {
         if (isMounted.current) {
             var subscriberFirestore = firestore()
-                .collection(`${user.uid}/chats/chats`)
+                .collection(`conversations/allConversations/${conversation}`)
+                .orderBy('created', 'asc')
                 .onSnapshot(onResult, onError);
+            getProfile()
         } else {
             isMounted.current = true;
         }
@@ -49,10 +55,20 @@ const Conversation = () => {
     }, [user])
 
     function onAuthStateChanged(user) {
-        console.log(user.uid);
-
         setUser(user);
         if (initializing) setInitializing(false);
+    }
+
+    async function getProfile() {
+        const profile = await firestore()
+            .collection(`users/allUsers/${user.uid}`)
+            .doc('profile')
+            .get()
+        console.log(profile.data());
+
+        if (profile.exists) {
+            setProfile(profile.data())
+        }
     }
 
     function onResult(querySnapshot) {
@@ -87,11 +103,12 @@ const Conversation = () => {
             return
         }
         firestore()
-            .collection(`${user.uid}/chats/chats`)
+            .collection(`conversations/allConversations/${conversation}`)
             .doc()
             .set({
                 id: uuid.v4(),
-                author: 'caio',
+                author: !profile.userName ? user.displayName : profile.userName,
+                authorId: user.uid,
                 message,
                 created: new Date()
             })
@@ -109,7 +126,7 @@ const Conversation = () => {
                     data={messages}
                     initialScrollIndex={0}
                     renderItem={({ item }) => {
-                        return <Message data={item.doc.data()} />
+                        return <Message data={item.doc.data()} loggedUserId={user.uid} />
                     }}
                     keyExtractor={item => item.doc.data().id}
                 />
