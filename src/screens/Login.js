@@ -2,7 +2,10 @@ import auth from '@react-native-firebase/auth';
 import { GoogleSignin, GoogleSigninButton } from '@react-native-community/google-signin';
 
 import React, { useState, useEffect, useRef } from 'react'
-import { TouchableOpacity, TextInput, Text, StyleSheet, SafeAreaView, View } from 'react-native'
+import { TouchableOpacity, TextInput, Text, StyleSheet, SafeAreaView, View, Dimensions, ActivityIndicator } from 'react-native'
+
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 
 const Login = ({ navigation }) => {
@@ -17,7 +20,6 @@ const Login = ({ navigation }) => {
     const [password, setPassword] = useState("")
     const [passwordErrorMessage, setPasswordErrorMessage] = useState('')
     const [passwordError, setpasswordError] = useState(true)
-    const [isValid, setIsValid] = useState(false)
 
     useEffect(() => {
         if (isMountedEmail.current) {
@@ -64,15 +66,11 @@ const Login = ({ navigation }) => {
         checkEmail();
         checkPassword();
         if (emailError || passwordError) {
+            setLoading(false)
             return
         }
         auth()
-            .signInWithEmailAndPassword(email, password)
-            .then(() => {
-                navigation.navigate('Conversation')
-                setLoading(false)
-            })
-            .catch(error => {
+            .signInWithEmailAndPassword(email, password).catch(error => {
                 if (error.code === 'auth/email-already-in-use') {
                     setEmailErrorMessage('That email address is already in use!')
                 }
@@ -95,7 +93,8 @@ const Login = ({ navigation }) => {
     }
 
     async function googleSignIn() {
-        setLoading(false)
+        setLoading(true)
+
         GoogleSignin.configure({
             webClientId: '486232265989-o9vmtakqb5j9i7aqi81t5un7g2kietml.apps.googleusercontent.com',
         });
@@ -105,10 +104,7 @@ const Login = ({ navigation }) => {
         const googleCredential = auth.GoogleAuthProvider.credential(idToken);
 
         auth()
-            .signInWithCredential(googleCredential).then(() => {
-                navigation.navigate('Conversation')
-                setLoading(false)
-            })
+            .signInWithCredential(googleCredential)
             .catch(error => {
                 if (error.code === 'auth/email-already-in-use') {
                     setEmailErrorMessage('That email address is already in use!')
@@ -127,40 +123,49 @@ const Login = ({ navigation }) => {
     }
 
     return (
-        <SafeAreaView style={styles.container} >
-            <TextInput
-                style={styles.inputText}
-                onChangeText={(val) => setEmail(val.trim())}
-                placeholder="Email"
-                value={email}
-                autoCapitalize="none"
-            />
-            {emailErrorMessage ?
-                <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{emailErrorMessage}</Text> :
-                null
+        <>
+            <SafeAreaView style={styles.container} >
+                <TextInput
+                    style={styles.inputText}
+                    onChangeText={(val) => setEmail(val.trim())}
+                    placeholder="Email"
+                    value={email}
+                    autoCapitalize="none"
+                />
+                {emailErrorMessage ?
+                    <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{emailErrorMessage}</Text> :
+                    null
+                }
+                <TextInput
+                    style={styles.inputText}
+                    onChangeText={(val) => setPassword(val)}
+                    placeholder="Password"
+                    value={password}
+                    secureTextEntry={true}
+                />
+                {passwordErrorMessage ?
+                    <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{passwordErrorMessage}</Text> :
+                    null
+                }
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => emailPasswordSignIn()}>
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign In</Text>
+                </TouchableOpacity>
+                <GoogleSigninButton
+                    style={styles.googleButton}
+                    color={GoogleSigninButton.Color.Dark}
+                    onPress={() => googleSignIn()} />
+
+            </SafeAreaView>
+            {
+                loading ?
+                    <View style={styles.overlay}>
+                        <ActivityIndicator size="large" color="#0000ff" />
+                    </View> :
+                    null
             }
-            <TextInput
-                style={styles.inputText}
-                onChangeText={(val) => setPassword(val)}
-                placeholder="Password"
-                value={password}
-                secureTextEntry={true}
-            />
-            {passwordErrorMessage ?
-                <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{passwordErrorMessage}</Text> :
-                null
-            }
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => emailPasswordSignIn()}>
-                <Text>Go</Text>
-            </TouchableOpacity>
-            <GoogleSigninButton
-                style={styles.googleButton}
-                size={GoogleSigninButton.Size.Wide}
-                color={GoogleSigninButton.Color.Dark}
-                onPress={() => googleSignIn()} />
-        </SafeAreaView>
+        </>
     )
 }
 
@@ -178,12 +183,14 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     button: {
-        backgroundColor: '#add8e6',
+        backgroundColor: '#4285F4',
         justifyContent: 'center',
         alignItems: 'center',
-        height: 40,
-        borderRadius: 10,
-        paddingBottom: 5
+        alignSelf: 'center',
+        height: 43,
+        width: '97%',
+        paddingBottom: 5,
+        borderRadius: 2
     },
     googleButton: {
         justifyContent: 'center',
@@ -192,6 +199,18 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 10,
         paddingBottom: 5
+    },
+    overlay: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flex: 1,
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        opacity: 0.5,
+        backgroundColor: 'black',
+        width: windowWidth,
+        height: windowHeight
     }
 })
 

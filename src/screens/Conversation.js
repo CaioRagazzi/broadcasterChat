@@ -14,11 +14,14 @@ import Message from "../components/Message";
 
 import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
+import auth from '@react-native-firebase/auth';
 
 const Conversation = () => {
 
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
+    const [initializing, setInitializing] = useState(true);
+    const [user, setUser] = useState();
     const flatList = useRef(null);
 
     useEffect(() => {
@@ -27,6 +30,18 @@ const Conversation = () => {
             .onSnapshot(onResult, onError);
         return () => subscriber();
     }, [])
+
+    // useEffect(() => {
+    //     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+    //     return subscriber;
+    // }, []);
+
+    // function onAuthStateChanged(user) {
+    //     console.log(user);
+        
+    //     setUser(user);
+    //     if (initializing) setInitializing(false);
+    // }
 
     function onResult(querySnapshot) {
         querySnapshot.docChanges().map(item => {
