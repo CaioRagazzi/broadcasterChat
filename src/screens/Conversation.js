@@ -18,6 +18,7 @@ import auth from '@react-native-firebase/auth';
 
 const Conversation = () => {
 
+    const isMounted = useRef(false);
     const [message, setMessage] = useState('')
     const [messages, setMessages] = useState([])
     const [initializing, setInitializing] = useState(true);
@@ -25,23 +26,34 @@ const Conversation = () => {
     const flatList = useRef(null);
 
     useEffect(() => {
-        const subscriber = firestore()
-            .collection('chats')
-            .onSnapshot(onResult, onError);
-        return () => subscriber();
+        const subscriberAuth = auth().onAuthStateChanged(onAuthStateChanged);
+        return () => {
+            subscriberAuth()
+        }
     }, [])
 
-    // useEffect(() => {
-    //     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    //     return subscriber;
-    // }, []);
+    useEffect(() => {
+        if (isMounted.current) {
+            var subscriberFirestore = firestore()
+                .collection(`${user.uid}/chats/chats`)
+                .onSnapshot(onResult, onError);
+        } else {
+            isMounted.current = true;
+        }
 
-    // function onAuthStateChanged(user) {
-    //     console.log(user);
-        
-    //     setUser(user);
-    //     if (initializing) setInitializing(false);
-    // }
+        return () => {
+            if (subscriberFirestore) {
+                subscriberFirestore()
+            }
+        }
+    }, [user])
+
+    function onAuthStateChanged(user) {
+        console.log(user.uid);
+
+        setUser(user);
+        if (initializing) setInitializing(false);
+    }
 
     function onResult(querySnapshot) {
         querySnapshot.docChanges().map(item => {
@@ -75,7 +87,7 @@ const Conversation = () => {
             return
         }
         firestore()
-            .collection('chats')
+            .collection(`${user.uid}/chats/chats`)
             .doc()
             .set({
                 id: uuid.v4(),
@@ -88,8 +100,7 @@ const Conversation = () => {
 
     return (
         <SafeAreaView style={{ flexGrow: 1 }}>
-            <KeyboardAvoidingView style={{ flex: 1 }}
-            >
+            <KeyboardAvoidingView style={{ flex: 1 }}>
                 <FlatList
                     ref={flatList}
                     onContentSizeChange={() => flatList.current.scrollToEnd()}

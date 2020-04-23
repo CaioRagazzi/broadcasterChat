@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import auth from '@react-native-firebase/auth';
+
 import Conversation from "../screens/Conversation";
 import Login from "../screens/Login";
+import Contacts from "../screens/Contacts";
+
 import CustomDrawer from "./CustomDrawer";
 
-import auth from '@react-native-firebase/auth';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -27,9 +30,10 @@ function Navigator() {
 
     function home() {
         return (
-            <Drawer.Navigator drawerContent={props => <CustomDrawer {...props} />}>
-                <Drawer.Screen name="conversation" component={Conversation} />
-            </Drawer.Navigator >
+            <Stack.Navigator initialRouteName="contacts">
+                <Stack.Screen name="conversation" component={Conversation} />
+                <Stack.Screen name="contacts" component={Contacts} />
+            </Stack.Navigator >
         )
     }
 
@@ -44,7 +48,9 @@ function Navigator() {
 
     return (
         user ?
-            home() :
+            <Drawer.Navigator drawerContent={props => <CustomDrawer {...props} />}>
+                <Drawer.Screen name="home" component={home} />
+            </Drawer.Navigator> :
             login()
     );
 }
