@@ -13,10 +13,31 @@ const Contacts = ({ navigation }) => {
 
     useEffect(() => {
         const subscriberAuth = auth().onAuthStateChanged(onAuthStateChanged);
+        createProfileIfHasnt()
         return () => {
             subscriberAuth()
         }
     }, [])
+
+    async function createProfileIfHasnt() {
+        const profile = await firestore()
+            .collection(`users/allUsers/${user.uid}`)
+            .doc('profile')
+            .get()
+        
+        console.log(profile.data());
+        console.log(user);
+        
+
+        // if (profile.data() === undefined) {
+        //     firestore()
+        //         .collection(`users/allUsers/${user.uid}`)
+        //         .doc('profile')
+        //         .set({
+        //             userName: 
+        //         })
+        // }
+    }
 
     useEffect(() => {
         if (isMounted.current) {

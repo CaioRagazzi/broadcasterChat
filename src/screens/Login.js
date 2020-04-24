@@ -1,7 +1,7 @@
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin, GoogleSigninButton } from '@react-native-community/google-signin';
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import {
     TouchableOpacity,
     TextInput,
@@ -13,12 +13,15 @@ import {
     ActivityIndicator,
     Keyboard
 } from 'react-native'
+import AuthContext from "../context/auth";
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
 
 const Login = ({ navigation }) => {
+
+    const { signed, emailPasswordSignIn, googleSignIn } = useContext(AuthContext)
 
     const isMountedEmail = useRef(false);
     const isMountedPassword = useRef(false);
@@ -30,6 +33,9 @@ const Login = ({ navigation }) => {
     const [password, setPassword] = useState("")
     const [passwordErrorMessage, setPasswordErrorMessage] = useState('')
     const [passwordError, setpasswordError] = useState(true)
+
+    console.log(signed);
+    
 
     useEffect(() => {
         if (isMountedEmail.current) {
@@ -70,66 +76,23 @@ const Login = ({ navigation }) => {
         }
     }
 
-    function emailPasswordSignIn() {
+    function emailPasswordLogin() {
 
-        setLoading(true)
         checkEmail();
         checkPassword();
         if (emailError || passwordError) {
-            setLoading(false)
             return
         }
         Keyboard.dismiss()
-        auth()
-            .signInWithEmailAndPassword(email, password).catch(error => {
-                if (error.code === 'auth/email-already-in-use') {
-                    setEmailErrorMessage('That email address is already in use!')
-                }
 
-                if (error.code === 'auth/invalid-email') {
-                    setEmailErrorMessage('That email address is invalid!')
-                }
+        emailPasswordSignIn(email, password)
 
-                if (error.code === 'auth/user-not-found') {
-                    setEmailErrorMessage('There is no user record corresponding to this identifier. The user may have been deleted.')
-                }
 
-                if (error.code === 'auth/wrong-password') {
-                    setPasswordErrorMessage('The password is invalid.')
-                }
-
-                console.log(error);
-                setLoading(false)
-            });
     }
 
-    async function googleSignIn() {
-        setLoading(true)
+    async function googleLogin() {
+        console.log('google signin');
 
-        GoogleSignin.configure({
-            webClientId: '486232265989-o9vmtakqb5j9i7aqi81t5un7g2kietml.apps.googleusercontent.com',
-        });
-
-        const { idToken } = await GoogleSignin.signIn();
-
-        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-
-        auth()
-            .signInWithCredential(googleCredential)
-            .catch(error => {
-                if (error.code === 'auth/email-already-in-use') {
-                    setEmailErrorMessage('That email address is already in use!')
-                }
-
-                if (error.code === 'auth/invalid-email') {
-                    setEmailErrorMessage('That email address is invalid!')
-                }
-
-                if (error.code === 'auth/user-not-found') {
-                    setEmailErrorMessage('There is no user record corresponding to this identifier. The user may have been deleted.')
-                }
-                setLoading(false)
-            });
     }
 
     return (
@@ -159,13 +122,13 @@ const Login = ({ navigation }) => {
                 }
                 <TouchableOpacity
                     style={styles.button}
-                    onPress={() => emailPasswordSignIn()}>
+                    onPress={() => emailPasswordLogin()}>
                     <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign In</Text>
                 </TouchableOpacity>
                 <GoogleSigninButton
                     style={styles.googleButton}
                     color={GoogleSigninButton.Color.Dark}
-                    onPress={() => googleSignIn()} />
+                    onPress={() => googleLogin()} />
 
             </SafeAreaView>
             {

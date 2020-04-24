@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
     Button
 } from 'react-native';
@@ -9,15 +9,14 @@ import {
     DrawerItemList,
 } from '@react-navigation/drawer';
 
+import AuthContext from "../context/auth";
+
 export default function CustomDrawer(props) {
 
+    const { signOutFirestore } = useContext(AuthContext)
+
     function logOut() {
-        auth()
-            .signOut()
-            .then(() => {
-                props.navigation.closeDrawer()
-                
-            })
+        signOutFirestore()
     }
 
     return (
