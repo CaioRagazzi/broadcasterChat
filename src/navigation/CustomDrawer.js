@@ -13,10 +13,10 @@ import AuthContext from "../context/auth";
 
 export default function CustomDrawer(props) {
 
-    const { signOutFirestore } = useContext(AuthContext)
+    const { auth } = useContext(AuthContext)
 
     function logOut() {
-        signOutFirestore()
+        auth.signOutFirestore()
     }
 
     return (

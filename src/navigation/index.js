@@ -11,10 +11,10 @@ const Drawer = createDrawerNavigator();
 
 const Index = () => {
 
-    const { signed } = useContext(AuthContext)
+    const { auth } = useContext(AuthContext)
 
     return (
-        signed ?
+        auth.signed ?
             <Drawer.Navigator drawerContent={props => <CustomDrawer {...props} />}>
                 <Drawer.Screen name="App" component={AppRoute} />
             </Drawer.Navigator> :

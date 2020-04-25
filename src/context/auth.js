@@ -3,25 +3,34 @@ import React, { createContext, useState } from "react";
 import auth from '@react-native-firebase/auth';
 import { GoogleSignin } from '@react-native-community/google-signin';
 
-const AuthContext = createContext({ signed: false, emailPasswordSignIn: null, googleSignIn: null, signOutFirestore: null });
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 
     const [loading, setLoading] = useState(false)
     const [user, setUser] = useState(null)
+    const [email, setEmail] = useState("")
     const [emailErrorMessage, setEmailErrorMessage] = useState('')
+    const [emailError, setEmailError] = useState(true)
+    const [password, setPassword] = useState("")
     const [passwordErrorMessage, setPasswordErrorMessage] = useState('')
+    const [passwordError, setpasswordError] = useState(true)
 
-    function emailPasswordSignIn(email, password) {
+    function emailPasswordSignIn() {
 
         setLoading(true)
         auth()
-            .createUserWithEmailAndPassword(email, password)
+            .signInWithEmailAndPassword(email, password)
             .then(response => {
                 console.log(response)
-                setUser(response.user)
+                setUser(response)
+                setLoading(false)
+                setEmail('')
+                setPassword('')
             })
             .catch(error => {
+                console.log(error);
+
                 if (error.code === 'auth/email-already-in-use') {
                     setEmailErrorMessage('That email address is already in use!')
                 }
@@ -56,6 +65,8 @@ export const AuthProvider = ({ children }) => {
             .signInWithCredential(googleCredential)
             .then(response => {
                 console.log(response)
+                setUser(response)
+                setLoading(false)
             })
             .catch(error => {
                 if (error.code === 'auth/email-already-in-use') {
@@ -76,11 +87,57 @@ export const AuthProvider = ({ children }) => {
     function signOutFirestore() {
         auth()
             .signOut()
-            .then(() => setUser(null))
+            .then((response) => {
+                console.log(response);
+
+                setUser(null)
+            })
+    }
+
+    function checkEmail() {
+        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+            setEmailErrorMessage('Invalid E-mail')
+            setEmailError(true)
+        } else {
+            setEmailErrorMessage('')
+            setEmailError(false)
+        }
+    }
+
+    function checkPassword() {
+        if (password.length == 0) {
+            setPasswordErrorMessage('Password is required')
+            setpasswordError(true)
+        } else if (password.length < 6) {
+            setPasswordErrorMessage('Password should be at least 6 characteres')
+            setpasswordError(true)
+        } else {
+            setPasswordErrorMessage('')
+            setpasswordError(false)
+        }
     }
 
     return (
-        <AuthContext.Provider value={{ signed: !!user, user, emailPasswordSignIn, googleSignIn, signOutFirestore }}>
+        <AuthContext.Provider value={{
+            auth: {
+                signed: !!user,
+                user,
+                emailPasswordSignIn,
+                googleSignIn,
+                signOutFirestore,
+                loading,
+                emailErrorMessage,
+                passwordErrorMessage,
+                email,
+                setEmail,
+                password,
+                setPassword,
+                checkEmail,
+                checkPassword,
+                emailError,
+                passwordError
+            }
+        }}>
             {
                 children
             }

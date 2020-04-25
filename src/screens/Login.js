@@ -21,78 +21,41 @@ const windowHeight = Dimensions.get('window').height;
 
 const Login = ({ navigation }) => {
 
-    const { signed, emailPasswordSignIn, googleSignIn } = useContext(AuthContext)
+    const { auth } = useContext(AuthContext)
 
     const isMountedEmail = useRef(false);
     const isMountedPassword = useRef(false);
 
-    const [loading, setLoading] = useState(false)
-    const [email, setEmail] = useState("")
-    const [emailErrorMessage, setEmailErrorMessage] = useState('')
-    const [emailError, setEmailError] = useState(true)
-    const [password, setPassword] = useState("")
-    const [passwordErrorMessage, setPasswordErrorMessage] = useState('')
-    const [passwordError, setpasswordError] = useState(true)
-
-    console.log(signed);
-    
-
     useEffect(() => {
         if (isMountedEmail.current) {
-            checkEmail()
+            auth.checkEmail()
         } else {
             isMountedEmail.current = true;
         }
-    }, [email])
+    }, [auth.email])
 
     useEffect(() => {
         if (isMountedPassword.current) {
-            checkPassword()
+            auth.checkPassword()
         } else {
             isMountedPassword.current = true;
         }
-    }, [password])
-
-    function checkEmail() {
-        if (!/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
-            setEmailErrorMessage('Invalid E-mail')
-            setEmailError(true)
-        } else {
-            setEmailErrorMessage('')
-            setEmailError(false)
-        }
-    }
-
-    function checkPassword() {
-        if (password.length == 0) {
-            setPasswordErrorMessage('Password is required')
-            setpasswordError(true)
-        } else if (password.length < 6) {
-            setPasswordErrorMessage('Password should be at least 6 characteres')
-            setpasswordError(true)
-        } else {
-            setPasswordErrorMessage('')
-            setpasswordError(false)
-        }
-    }
+    }, [auth.password])
 
     function emailPasswordLogin() {
 
-        checkEmail();
-        checkPassword();
-        if (emailError || passwordError) {
+        auth.checkEmail();
+        auth.checkPassword();
+        if (auth.emailError || auth.passwordError) {
             return
         }
         Keyboard.dismiss()
 
-        emailPasswordSignIn(email, password)
-
-
+        auth.emailPasswordSignIn()
     }
 
     async function googleLogin() {
-        console.log('google signin');
-
+        auth.googleSignIn()
     }
 
     return (
@@ -100,24 +63,24 @@ const Login = ({ navigation }) => {
             <SafeAreaView style={styles.container} >
                 <TextInput
                     style={styles.inputText}
-                    onChangeText={(val) => setEmail(val.trim())}
+                    onChangeText={(val) => auth.setEmail(val.trim())}
                     placeholder="Email"
-                    value={email}
+                    value={auth.email}
                     autoCapitalize="none"
                 />
-                {emailErrorMessage ?
-                    <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{emailErrorMessage}</Text> :
+                {auth.emailErrorMessage ?
+                    <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{auth.emailErrorMessage}</Text> :
                     null
                 }
                 <TextInput
                     style={styles.inputText}
-                    onChangeText={(val) => setPassword(val)}
+                    onChangeText={(val) => auth.setPassword(val)}
                     placeholder="Password"
-                    value={password}
+                    value={auth.password}
                     secureTextEntry={true}
                 />
-                {passwordErrorMessage ?
-                    <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{passwordErrorMessage}</Text> :
+                {auth.passwordErrorMessage ?
+                    <Text style={{ fontSize: 10, color: 'red', paddingLeft: 2, paddingBottom: 5 }}>{auth.passwordErrorMessage}</Text> :
                     null
                 }
                 <TouchableOpacity
@@ -132,7 +95,7 @@ const Login = ({ navigation }) => {
 
             </SafeAreaView>
             {
-                loading ?
+                auth.loading ?
                     <View style={styles.overlay}>
                         <ActivityIndicator size="large" color="#0000ff" />
                     </View> :

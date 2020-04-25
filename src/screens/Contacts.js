@@ -1,60 +1,61 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useContext, useLayoutEffect } from 'react'
 import { SafeAreaView, Text, KeyboardAvoidingView, Button } from 'react-native'
 
-import auth from '@react-native-firebase/auth';
+import AuthContext from "../context/auth";
+
 import firestore from '@react-native-firebase/firestore';
 
 const Contacts = ({ navigation }) => {
 
+    const { auth } = useContext(AuthContext)
+
     const isMounted = useRef(false);
-    const [user, setUser] = useState();
-    const [initializing, setInitializing] = useState(true);
     const [chats, setChats] = useState([])
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <Button onPress={() => { navigation.navigate("SearchContacts") }} title="Search" />
+            ),
+        });
+    }, [navigation])
+
+    // useEffect(() => {
+    //     if (isMounted.current) {
+    //         var subscriberFirestore = firestore()
+    //             .doc(`users/${auth.user.uid}`)
+    //             .collection('chatting')
+    //             .onSnapshot(onResult, onError);
+    //     } else {
+    //         isMounted.current = true;
+    //     }
+
+    //     return () => {
+    //         if (subscriberFirestore) {
+    //             subscriberFirestore()
+    //         }
+    //     }
+    // }, [auth.user])
+
     useEffect(() => {
-        const subscriberAuth = auth().onAuthStateChanged(onAuthStateChanged);
-        createProfileIfHasnt()
-        return () => {
-            subscriberAuth()
-        }
+        createProfileIfHasnt();
     }, [])
 
     async function createProfileIfHasnt() {
         const profile = await firestore()
-            .collection(`users/allUsers/${user.uid}`)
-            .doc('profile')
+            .doc(`users/${auth.user.user.uid}`)
             .get()
-        
-        console.log(profile.data());
-        console.log(user);
-        
 
-        // if (profile.data() === undefined) {
-        //     firestore()
-        //         .collection(`users/allUsers/${user.uid}`)
-        //         .doc('profile')
-        //         .set({
-        //             userName: 
-        //         })
-        // }
+        if (profile.data() === undefined) {
+            firestore()
+                .doc(`users/${auth.user.user.uid}`)
+                .set({
+                    userName: auth.user.user.displayName === null ? auth.user.user.email.match(/^([^@]*)@/)[1] : auth.user.user.displayName,
+                    email: auth.user.user.email,
+                    uid: auth.user.user.uid
+                })
+        }
     }
-
-    useEffect(() => {
-        if (isMounted.current) {
-            var subscriberFirestore = firestore()
-                .collection(`users/allUsers/${user.uid}`)
-                .doc('chatting')
-                .onSnapshot(onResult, onError);
-        } else {
-            isMounted.current = true;
-        }
-
-        return () => {
-            if (subscriberFirestore) {
-                subscriberFirestore()
-            }
-        }
-    }, [user])
 
     function onResult(querySnapshot) {
         setChats([])
@@ -65,11 +66,6 @@ const Contacts = ({ navigation }) => {
 
     function onError(error) {
         console.error(error);
-    }
-
-    function onAuthStateChanged(user) {
-        setUser(user);
-        if (initializing) setInitializing(false);
     }
 
     return (
