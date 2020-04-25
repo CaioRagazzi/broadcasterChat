@@ -43,16 +43,16 @@ const Contacts = ({ navigation }) => {
 
     async function createProfileIfHasnt() {
         const profile = await firestore()
-            .doc(`users/${auth.user.user.uid}`)
+            .doc(`users/${auth.user.uid}`)
             .get()
 
         if (profile.data() === undefined) {
             firestore()
-                .doc(`users/${auth.user.user.uid}`)
+                .doc(`users/${auth.user.uid}`)
                 .set({
-                    userName: auth.user.user.displayName === null ? auth.user.user.email.match(/^([^@]*)@/)[1] : auth.user.user.displayName,
-                    email: auth.user.user.email,
-                    uid: auth.user.user.uid
+                    userName: auth.user.displayName === null ? auth.user.email.match(/^([^@]*)@/)[1] : auth.user.displayName,
+                    email: auth.user.email,
+                    uid: auth.user.uid
                 })
         }
     }

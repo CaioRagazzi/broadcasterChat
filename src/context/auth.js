@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
         <AuthContext.Provider value={{
             auth: {
                 signed: !!user,
-                user,
+                user: user ? user.user : user,
                 emailPasswordSignIn,
                 googleSignIn,
                 signOutFirestore,
