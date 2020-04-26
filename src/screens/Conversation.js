@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import {
     SafeAreaView,
     StyleSheet,
@@ -10,103 +10,123 @@ import {
     KeyboardAvoidingView
 } from 'react-native';
 
+import firestore from '@react-native-firebase/firestore';
 import Message from "../components/Message";
+import AuthContext from "../context/auth";
 
 import uuid from 'react-native-uuid';
 
-const Conversation = ({ navigation }) => {
+const Conversation = ({ route, navigation }) => {
 
-    const isMounted = useRef(false);
-    const [message, setMessage] = useState('')
-    const [messages, setMessages] = useState([])
-    const [initializing, setInitializing] = useState(true);
-    const [user, setUser] = useState();
-    const [profile, setProfile] = useState({})
+    const { auth } = useContext(AuthContext)
 
-    const flatList = useRef(null);
+    const { friendUid } = route.params;
+
+    // const isMounted = useRef(false);
+    // const [message, setMessage] = useState('')
+    // const [messages, setMessages] = useState([])
+    // const [initializing, setInitializing] = useState(true);
+    // const [user, setUser] = useState();
+    // const [profile, setProfile] = useState({})
+
+    // const flatList = useRef(null);
 
     useEffect(() => {
-        if (isMounted.current) {
-            var subscriberFirestore = firestore()
-                .collection(`conversations/allConversations/${conversation}`)
-                .orderBy('created', 'asc')
-                .onSnapshot(onResult, onError);
-            getProfile()
-        } else {
-            isMounted.current = true;
+
+        async function teste(params) {
+            console.log(auth.user.uid);
+            console.log(friendUid);
+            
+            var oi = await firestore().doc(`users/${auth.user.uid}/chatting/${friendUid}`).get()
+            console.log(oi);
+            
         }
+        teste()
+    }, [])
 
-        return () => {
-            if (subscriberFirestore) {
-                subscriberFirestore()
-            }
-        }
-    }, [user])
 
-    function onAuthStateChanged(user) {
-        setUser(user);
-        if (initializing) setInitializing(false);
-    }
+    // var subscriberFirestore = firestore()
+    //     .collection(`conversations/allConversations/${conversation}`)
+    //     .orderBy('created', 'asc')
+    //     .onSnapshot(onResult, onError);
+    // getProfile()
 
-    async function getProfile() {
-        const profile = await firestore()
-            .collection(`users/allUsers/${user.uid}`)
-            .doc('profile')
-            .get()
-        console.log(profile.data());
+    // return () => {
+    //     subscriberFirestore()
+    // }
+    // }, [])
 
-        if (profile.exists) {
-            setProfile(profile.data())
-        }
-    }
+    // useEffect(() => {
+    //     firestore()
+    //         .collection('conversations')
+    //         .where('users', '==', [''])
+    // }, [input])
 
-    function onResult(querySnapshot) {
-        querySnapshot.docChanges().map(item => {
-            switch (item.type) {
-                case 'added':
-                    addMessage(item)
-                    break;
-                case 'removed':
-                    removeMessage(item)
-                    break;
-            }
-        })
-    }
+    // function onAuthStateChanged(user) {
+    //     setUser(user);
+    //     if (initializing) setInitializing(false);
+    // }
 
-    function removeMessage(documentChange) {
-        setMessages(oldMessages => oldMessages.filter(item => {
-            return item.doc.data().id !== documentChange.doc.data().id
-        }))
-    }
+    // async function getProfile() {
+    //     const profile = await firestore()
+    //         .collection(`users/allUsers/${user.uid}`)
+    //         .doc('profile')
+    //         .get()
+    //     console.log(profile.data());
 
-    function addMessage(documentChange) {
-        setMessages(oldMessages => [...oldMessages, documentChange])
-    }
+    //     if (profile.exists) {
+    //         setProfile(profile.data())
+    //     }
+    // }
 
-    function onError(error) {
-        console.error(error);
-    }
+    // function onResult(querySnapshot) {
+    //     querySnapshot.docChanges().map(item => {
+    //         switch (item.type) {
+    //             case 'added':
+    //                 addMessage(item)
+    //                 break;
+    //             case 'removed':
+    //                 removeMessage(item)
+    //                 break;
+    //         }
+    //     })
+    // }
 
-    function createMessage() {
-        if (message.trim() === '') {
-            return
-        }
-        firestore()
-            .collection(`conversations/allConversations/${conversation}`)
-            .doc()
-            .set({
-                id: uuid.v4(),
-                author: !profile.userName ? user.displayName : profile.userName,
-                authorId: user.uid,
-                message,
-                created: new Date()
-            })
-        setMessage('')
-    }
+    // function removeMessage(documentChange) {
+    //     setMessages(oldMessages => oldMessages.filter(item => {
+    //         return item.doc.data().id !== documentChange.doc.data().id
+    //     }))
+    // }
+
+    // function addMessage(documentChange) {
+    //     setMessages(oldMessages => [...oldMessages, documentChange])
+    // }
+
+    // function onError(error) {
+    //     console.error(error);
+    // }
+
+    // function createMessage() {
+    //     if (message.trim() === '') {
+    //         return
+    //     }
+    //     firestore()
+    //         .collection(`conversations/allConversations/${conversation}`)
+    //         .doc()
+    //         .set({
+    //             id: uuid.v4(),
+    //             author: !profile.userName ? user.displayName : profile.userName,
+    //             authorId: user.uid,
+    //             message,
+    //             created: new Date()
+    //         })
+    //     setMessage('')
+    // }
 
     return (
         <SafeAreaView style={{ flexGrow: 1 }}>
-            <KeyboardAvoidingView style={{ flex: 1 }}>
+            <Text>oi</Text>
+            {/* <KeyboardAvoidingView style={{ flex: 1 }}>
                 <FlatList
                     ref={flatList}
                     onContentSizeChange={() => flatList.current.scrollToEnd()}
@@ -133,10 +153,10 @@ const Conversation = ({ navigation }) => {
                         <Text style={{ color: 'white' }}>Send</Text>
                     </TouchableOpacity>
                 </View>
-            </KeyboardAvoidingView>
+            </KeyboardAvoidingView> */}
         </SafeAreaView>
-    );
-};
+    )
+}
 
 const styles = StyleSheet.create({
     mensagemContainer: {

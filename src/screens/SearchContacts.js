@@ -8,6 +8,7 @@ const SearchContacts = ({ navigation }) => {
     const isMounted = useRef(false);
     const [emailInput, setEmailInput] = useState('')
     const [searchedUserName, setSearchedUserName] = useState('')
+    const [searchedUid, setSearchedUid] = useState('')
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -21,9 +22,11 @@ const SearchContacts = ({ navigation }) => {
                 if (response.docs.length !== 0) {
                     setLoading(false)
                     setSearchedUserName(response.docs[0].data().userName);
+                    setSearchedUid(response.docs[0].data().uid);
                 } else {
                     setLoading(false)
                     setSearchedUserName('');
+                    setSearchedUid('');
                 }
                 setLoading(false)
             }
@@ -46,7 +49,7 @@ const SearchContacts = ({ navigation }) => {
                         <ActivityIndicator size="large" color="#0000ff" /> :
                         searchedUserName === '' ?
                             null :
-                            <Button title={searchedUserName} onPress={() => navigation.navigate('Conversation')}></Button>
+                            <Button title={searchedUserName} onPress={() => navigation.navigate('Conversation', { friendUid: searchedUid })}></Button>
                 }
             </KeyboardAvoidingView>
         </SafeAreaView>
