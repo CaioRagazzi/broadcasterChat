@@ -12,11 +12,9 @@ import {
 
 import Message from "../components/Message";
 
-import firestore from '@react-native-firebase/firestore';
 import uuid from 'react-native-uuid';
-import auth from '@react-native-firebase/auth';
 
-const Conversation = ({ route, navigation }) => {
+const Conversation = ({ navigation }) => {
 
     const isMounted = useRef(false);
     const [message, setMessage] = useState('')
@@ -26,15 +24,6 @@ const Conversation = ({ route, navigation }) => {
     const [profile, setProfile] = useState({})
 
     const flatList = useRef(null);
-
-    const { conversation } = route.params;
-
-    useEffect(() => {
-        const subscriberAuth = auth().onAuthStateChanged(onAuthStateChanged);
-        return () => {
-            subscriberAuth()
-        }
-    }, [])
 
     useEffect(() => {
         if (isMounted.current) {

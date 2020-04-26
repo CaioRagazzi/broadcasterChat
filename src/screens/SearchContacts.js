@@ -3,11 +3,11 @@ import { SafeAreaView, KeyboardAvoidingView, TextInput, Button, ActivityIndicato
 
 import firestore from '@react-native-firebase/firestore';
 
-const SearchContacts = () => {
+const SearchContacts = ({ navigation }) => {
 
     const isMounted = useRef(false);
     const [emailInput, setEmailInput] = useState('')
-    const [searched, setSearched] = useState('')
+    const [searchedUserName, setSearchedUserName] = useState('')
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
@@ -20,10 +20,10 @@ const SearchContacts = () => {
                     .get()
                 if (response.docs.length !== 0) {
                     setLoading(false)
-                    setSearched(response.docs[0].data().userName);
+                    setSearchedUserName(response.docs[0].data().userName);
                 } else {
                     setLoading(false)
-                    setSearched('');
+                    setSearchedUserName('');
                 }
                 setLoading(false)
             }
@@ -44,9 +44,9 @@ const SearchContacts = () => {
                 {
                     loading ?
                         <ActivityIndicator size="large" color="#0000ff" /> :
-                        searched === '' ?
+                        searchedUserName === '' ?
                             null :
-                            <Button title={searched}></Button>
+                            <Button title={searchedUserName} onPress={() => navigation.navigate('Conversation')}></Button>
                 }
             </KeyboardAvoidingView>
         </SafeAreaView>
